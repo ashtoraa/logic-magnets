@@ -1,5 +1,4 @@
 
-from ast import main
 import random
 from cells import Square
 
@@ -8,9 +7,10 @@ class Game:
         self.rows = rows
         self.cols = cols
         self.board = self.build_random_board()
+        self.board_history = []
 
     def build_random_board(self):
-        colors = ['🟪', '⬜️', '🟦', '🟥','⬛️']
+        colors = ['🟪', '⬜️', '🟦', '🟥', '⬛️']
         board = [[None for _ in range(self.cols)] for _ in range(self.rows)]
 
         for i in range(self.rows):
@@ -27,15 +27,15 @@ class Game:
                 result += str(square)
             result += '\n'
         return result
+
     def count_empty_squares(self):
-        empty_count = sum(row.count('⬜️') for row in self.board)
+        empty_count = sum(square.square_type == '⬜️' for row in self.board for square in row)
         return empty_count
 
     def check_win(self):
         empty_squares = self.count_empty_squares()
-        if empty_squares == 0:
-            return True
-        return False
+        return empty_squares == 0
+
     def move_piece(self, x, y, direction):
         if direction == "up" and x > 0 and self.board[x-1][y].square_type == '⬜️':
             self.board[x-1][y].square_type, self.board[x][y].square_type = self.board[x][y].square_type, '⬜️'
@@ -61,6 +61,9 @@ class Game:
             self.board_history.append(board_copy)
             self.print_board()
 
+            if self.check_win():
+                print("Congratulations! You've won the game.")
+                break
 
     def find_movable_piece(self):
         for i in range(self.rows):
@@ -68,16 +71,20 @@ class Game:
                 if self.board[i][j].square_type in ['🟥', '🟦']:
                     return (i, j)
         return (None, None)
-    
-def main():
-      rows = int(input("Enter the number of rows: "))
-      cols = int(input("Enter the number of columns: "))
-      game_view = Game(rows, cols)
-      print(game_view)
-      if game_view.check_win():
-        print("Congratulations! You've won the game.")
-      else:
-        print("Keep playing! Number of empty squares:", game_view.count_empty_squares())
 
-      if __name__ == '__main__':
-        main()
+    def print_board(self):
+        for row in self.board:
+            print(" | ".join([str(cell) for cell in row]))
+        print("-" * (4 * self.cols))
+
+def main():
+    rows = int(input("Enter the number of rows: "))
+    cols = int(input("Enter the number of columns: "))
+    game_view = Game(rows, cols)
+    print("Initial Board:")
+    game_view.print_board()
+
+    game_view.move_pieces_and_store()
+
+if __name__ == '__main__':
+    main()
